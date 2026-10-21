@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <button id="settings-back" class="icon-button" aria-label="Back" hidden>
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M10 3 5 8l5 5" />
+        </svg>
+      </button>
+      <h1 id="mark" class="mark">
+        <img
+          src="icons/wordmark.webp"
+          alt="Keepsake"
+          width="800"
+          height="191"
+        />
+      </h1>
+      <h1 id="title" hidden>Settings</h1>
+      <span id="library-status" class="library-status" hidden>
+        <span class="dot" aria-hidden="true"></span>
+        <span id="library-status-text"></span>
+      </span>
+      <button
+        id="settings-open"
+        class="icon-button"
+        aria-label="Settings"
+        hidden
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+          />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </button>
+    </header>
+
+    <main id="setup" hidden>
+      <h2>Connect your library</h2>
+      <p>
+        Keepsake saves your X likes and bookmarks to the library on this
+        computer.
+      </p>
+      <div id="setup-offline" class="message warn" role="status" hidden>
+        Your library isn’t running. Start it, then connect here.
+      </div>
+      <label for="token">Pairing token</label>
+      <p class="hint before">
+        In
+        <a id="setup-library-link" href="http://127.0.0.1:47821" target="_blank"
+          >your library ↗</a
+        >, click <strong>Connect Chrome &amp; agents</strong> and copy the
+        token.
+      </p>
+      <input
+        id="token"
+        type="password"
+        autocomplete="off"
+        placeholder="Paste token"
+      />
+      <div id="setup-message" class="message error" role="alert" hidden></div>
+      <button id="pair" class="primary">Connect</button>
+      <small>Stored only in this browser. You connect once.</small>
+    </main>
+
+    <main id="main" hidden>
+      <div id="sync-error" class="message error banner" role="alert" hidden>
+        <span id="sync-error-text"></span>
+        <button id="retry" class="text-button">Retry</button>
+      </div>
+      <section class="import-panel">
+        <h2 id="import-title" role="status" aria-live="polite">
+          Saving as you browse X
+        </h2>
+        <p id="import-detail"></p>
+        <div id="import-progress" class="import-progress" hidden>
+          <div id="import-count-row" class="count">
+            <span id="import-count">0</span>
+            <span id="import-count-label">new</span>
+          </div>
+          <p id="import-stats" class="stats"></p>
+          <div id="progress-row" class="progress-row">
+            <div class="progress-track">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <span id="scroll-count"></span>
+          </div>
+        </div>
+        <button id="backfill" class="primary">Import</button>
+        <a
+          id="open-x"
+          class="button"
+          href="https://x.com/i/bookmarks"
+          target="_blank"
+          hidden
+          >Open X Bookmarks ↗</a
+        >
+        <button id="open-settings" class="primary" hidden>Replace token</button>
+        <div
+          id="action-message"
+          class="message warn"
+          role="status"
+          hidden
+        ></div>
+      </section>
+      <footer id="footer">
+        <div id="sync-row" class="sync-row">
+          <span id="sync-status"></span>
+          <button id="sync" class="text-button" hidden>Sync now</button>
+        </div>
+        <a id="library-link" href="http://127.0.0.1:47821" target="_blank"
+          >Open library ↗</a
+        >
+      </footer>
+    </main>
+
+    <main id="settings" hidden>
+      <p id="settings-status" class="settings-status">
+        Connected to the library on this computer.
+      </p>
+      <p id="settings-rejected" class="message error" hidden>
+        Your library rejected this browser’s token. Paste a new one below.
+      </p>
+      <button id="replace-open" class="text-button">Replace token…</button>
+      <div id="replace-form" hidden>
+        <label for="replacement-token">New pairing token</label>
+        <p class="hint before">
+          In
+          <a href="http://127.0.0.1:47821" target="_blank">your library ↗</a>,
+          click <strong>Connect Chrome &amp; agents</strong> and copy the token.
+        </p>
+        <input
+          id="replacement-token"
+          type="password"
+          autocomplete="off"
+          placeholder="Paste token"
+        />
+        <div
+          id="settings-message"
+          class="message error"
+          role="alert"
+          hidden
+        ></div>
+        <button id="replace-token" class="primary">Replace token</button>
+      </div>
+      <hr />
+      <button id="disconnect" class="text-button danger">
+        Detach this browser
+      </button>
+      <small>Your library and any queued saves are kept.</small>
+    </main>
+
+    <script src="dist/popup.js"></script>
+  </body>
+</html>

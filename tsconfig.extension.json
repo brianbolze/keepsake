@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["chrome"],
+    "incremental": false,
+    "moduleDetection": "force"
+  },
+  "include": ["extension/**/*.ts"],
+  "exclude": ["node_modules"]
+}
