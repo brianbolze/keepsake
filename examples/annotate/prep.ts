@@ -9,8 +9,9 @@ interface PreparedMedia {
 }
 // Build a run folder for the annotation pass: one folder per save with item.json, downscaled images and
 // a 4-frame contact sheet per video, plus shard lists for parallel agents.
-// Usage: node examples/annotate/prep.ts [--all] [--ids=a,b] [--shard-size=30]
-// Default selection: active, non-demo saves that have no description yet.
+// Usage: node examples/annotate/prep.ts [--count] [--all] [--ids=a,b] [--shard-size=30]
+// Default selection: active, non-demo saves that have no description yet and whose videos have
+// downloaded (or that are over a day old).
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -35,6 +36,46 @@ const items = db
       i.source !== "demo" && Object.values(i.signals).some((s) => s?.active),
   )
   .filter((i) => (only ? only.includes(i.id) : all || !i.description));
+
+// A save whose video is still downloading would be described from text alone and then never revisited,
+// so the default selection waits for it. After MEDIA_GRACE_HOURS it is annotated anyway (flagged media-missing).
+const MEDIA_GRACE_HOURS = 24;
+const videoMissing = (i: Item) =>
+  (i.media || []).some(
+    (m) =>
+      m.type === "video" &&
+      !(m.local && existsSync(join(DATA, m.local.replace(/^\//, "")))),
+  );
+const isWaiting = (i: Item) =>
+  !only &&
+  !all &&
+  (i.mediaResolvePending || videoMissing(i)) &&
+  Date.now() - Date.parse(i.createdAt) < MEDIA_GRACE_HOURS * 3_600_000;
+const waitingForMedia = items.filter(isWaiting).length;
+items.splice(0, items.length, ...items.filter((i) => !isWaiting(i)));
+
+// --count: report what is waiting without building a run folder (the scheduled task's cheap gate).
+if (process.argv.includes("--count") || !items.length) {
+  const oldest = items.map((i) => i.createdAt).sort()[0] || null;
+  console.log(
+    JSON.stringify(
+      {
+        pending: items.length,
+        waitingForMedia,
+        oldestCreatedAt: oldest,
+        oldestHours: oldest
+          ? Math.floor((Date.now() - Date.parse(oldest)) / 3_600_000)
+          : null,
+        ...(process.argv.includes("--count")
+          ? {}
+          : { runDir: null, items: 0, shards: [] }),
+      },
+      null,
+      2,
+    ),
+  );
+  process.exit(0);
+}
 
 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
 const run = join(DATA, "annotate", stamp);

@@ -12,12 +12,23 @@ vocabulary, and a short prose description. Both are stored apart from the captur
 
 Run everything from the Keepsake repo root. Node 24+ and `ffmpeg` are required.
 
+## Scheduled runs
+
+When started by the hourly scheduled task (or asked for a "scheduled run"), check first and stop early when there is
+little to do. Most scheduled runs should end at this check, so do not read other files before it.
+
+- Run `node examples/annotate/prep.ts --count`. It reports `pending` (ready to annotate), `waitingForMedia` (videos
+  still downloading; ignore them) and `oldestHours` (age of the oldest ready save).
+- Stop with a one-line reply if `pending` is 0, or if `pending` is below 10 and `oldestHours` is below 6.
+- Otherwise run the steps below. Never use `--all` in a scheduled run. Keep the step 5 report to a few lines.
+
 ## Steps
 
 1. **Prepare.** `node examples/annotate/prep.ts` builds a run folder under `data/annotate/<timestamp>/` for every
    active save that has no description yet, and prints `runDir`, `items` and `shards`.
-   If `items` is 0, report "nothing to annotate" and stop. Options: `--ids=a,b` for specific saves, `--all` to redo
-   everything (ask the user first: about 3M tokens for 600 saves), `--shard-size=30`.
+   If `items` is 0, report "nothing to annotate" and stop (no run folder is created). Options: `--ids=a,b` for
+   specific saves, `--all` to redo everything (ask the user first: about 3M tokens for 600 saves), `--shard-size=30`.
+   `--count` only reports `pending` and `oldestHours` without building anything; use it as a cheap check first.
 2. **Annotate.** Launch one sub-agent per shard, all in one message so they run in parallel. Use Sonnet
    (`model: "sonnet"`): the work is looking and describing, not hard reasoning, and the cost multiplies per shard.
    Each agent gets this brief with the two values filled in:

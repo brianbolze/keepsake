@@ -1,0 +1,1 @@
+../../../examples/annotate/SKILL.md
